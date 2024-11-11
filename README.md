@@ -7,5 +7,6 @@
 
 
 ## 📰 News
-**[2024.10.9]** Code and trained models will be released here.
+**[2024.11.11]** Codes are released now.
+**[2024.10.9]** Code and dataset feature will be released here.
 
