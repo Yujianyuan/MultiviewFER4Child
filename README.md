@@ -7,8 +7,9 @@
 
 
 ## 📰 News
+**[2024.11.12]** dataset features are available now.  <br>
 **[2024.11.11]** Codes are released now. We are working on optimizing the codes. <br>
-**[2024.10.9]** Code and dataset feature will be released here. Welcome to **watch** this repository for the latest updates.
+**[2024.10.9]** Code and dataset features will be released here. Welcome to **watch** this repository for the latest updates.
 
 
 ## ➡️ Dataset feature
