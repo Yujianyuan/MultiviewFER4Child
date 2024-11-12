@@ -1,13 +1,12 @@
 # MultiviewFER4Child
 
-
 > [**Multi-view Facial Expressions Analysis of Autistic Children in Social Play**]<br>
 > Jiabei Zeng *, Yujian Yuan *, Lu Qu, Fei Chang, Xuran Sun, Jinqiuyu Gong, Xuling Han, Min Liu, Hang Zhao, Qiaoyun Liu, Shiguang Shan, Xilin Chen <br> *: equal contribution.  <br>Institute of Computing Technology, Chinese Academy of Sciences;
  University of Chinese Academy of Sciences; East China Normal University
 
 
 ## 📰 News
-**[2024.11.12]** dataset features are available now.  <br>
+**[2024.11.12]** Dataset features are available now.  <br>
 **[2024.11.11]** Codes are released now. We are working on optimizing the codes. <br>
 **[2024.10.9]** Code and dataset features will be released here. Welcome to **watch** this repository for the latest updates.
 
@@ -48,9 +47,16 @@ cd MultiviewFER4Child
 
 ## 🚀 Getting started
 
+You should finish these steps for feature extraction and model training.
 
+1. fill in the blank labeled by 'TODO' in main.py
+   The info_base should be set as the path of the dataset feature.
 
-
+2. run main.py
+```bash
+python main.py
+```
+Then you will get the classification result shown in the terminal.
 
 
 ## 🤝 Acknowledgement
