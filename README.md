@@ -50,9 +50,10 @@ cd MultiviewFER4Child
 You should finish these steps for feature extraction and model training.
 
 1. fill in the blank labeled by 'TODO' in main.py
+
    The info_base should be set as the path of the dataset feature.
 
-2. run main.py
+3. run main.py
 ```bash
 python main.py
 ```
