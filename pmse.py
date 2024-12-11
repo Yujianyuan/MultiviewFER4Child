@@ -34,45 +34,74 @@ def custom_granulate_time_series_multidim(time_series, scale):
     return granulated_time_series
 
 
-def sample_entropy_multidim(time_series, sample_length, tolerance=None):
-    if not isinstance(time_series, np.ndarray):
-        time_series = np.array(time_series)
+def sample_entropy_multidim(time_series, m, r=None):
+    """
+    Calculate sample entropy for a multi-dimensional time series.
+    :param time_series: 2D array-like of shape (N, D), N is length, D is feature dimension.
+                        Each row is a time point with D-dimensional feature vector.
+    :param m: Embedding dimension
+    :param r: Tolerance. If None, defaults to 0.1 * nanstd of the data.
+    :return: Sample Entropy value (float) or np.nan if not definable.
+    """
+    ts = np.array(time_series, dtype=float)
 
-    if tolerance is None:
-        # We calculate a default tolerance based on JS divergence if not provided
-        # This is a placeholder, should be defined based on domain knowledge or data analysis
-        tolerance = 0.1*compute_js_nanstd(time_series)
+    N, D = ts.shape
 
-    sample_length = sample_length - 1
-    n = len(time_series)
-    N_temp = np.zeros(sample_length + 2)
-    N_temp[0] = n * (n - 1) / 2
+    # Determine r if not given
+    if r is None:
+        r = 0.1 * np.nanstd(ts)
+        if np.isnan(r) or r == 0:
+            r = 1e-10
 
-    for i in range(n - sample_length - 1):
-        template = time_series[i: (i + sample_length + 1)]
+    if N < 2*m:
+        # Not enough data
+        return np.nan
 
-        # Skip if NaN is in the template
-        if np.isnan(template).any():
-            continue
+    # Construct embedding vectors
+    # X_m: shape (N-m+1, m, D)
+    X_m = np.array([ts[i:i+m] for i in range(N - m + 1)])
+    # X_m1: shape (N-m, m+1, D)
+    X_m1 = np.array([ts[i:i+m+1] for i in range(N - m)])
 
-        rem_time_series = time_series[i + 1:]
-        search_list = np.arange(len(rem_time_series) - sample_length, dtype=np.int32)
+    def count_matches(X, threshold):
+        """
+        Count the number of matches pairs (i < j) of embedding vectors in X.
+        Each embedding vector: shape (m_or_m+1, D)
+        Distance measure: Jensen-Shannon distance per step, then take max over the embedding window.
+        Skip pairs that involve NaNs.
+        """
+        count = 0
+        length = len(X)
+        for i in range(length - 1):
+            Xi = X[i]
+            # Check if Xi contains NaN
+            if np.isnan(Xi).any():
+                # No valid pairs with Xi
+                continue
+            for j in range(i + 1, length):
+                Xj = X[j]
+                # Check if Xj contains NaN
+                if np.isnan(Xj).any():
+                    continue
+                # Compute distance: for each time step in embedding, calculate JS distance, then take max
+                dist_vals = []
+                # Xi and Xj are shape (m or m+1, D)
+                for k in range(Xi.shape[0]):
+                    # Extract distributions (1D arrays)
+                    dist_val = jensenshannon(Xi[k], Xj[k])
+                    # jensenshannon returns a scalar distance
+                    dist_vals.append(dist_val)
+                dist = np.max(dist_vals)
+                if dist < threshold:
+                    count += 1
+        return count
 
-        for length in range(1, len(template) + 1):
-            valid_indices = [j for j in search_list if not np.isnan(rem_time_series[j]).any()]
-            js_distances = np.array([jensenshannon(template[length - 1], rem_time_series[j]) for j in valid_indices])
-            
-            hit_list = js_distances < tolerance
-            valid_hits = np.array(valid_indices)[hit_list]  # Apply hit_list to valid_indices
+    B_m = count_matches(X_m, r)
+    A_m = count_matches(X_m1, r)
 
-            N_temp[length] += len(valid_hits)
-            
-            # Update search_list only with indices that had valid hits
-            search_list = valid_hits + 1
-
-    # Avoid division by zero in case no matches are found
-    N_temp[N_temp == 0] = np.nan
-    sampen = -np.log(N_temp[1:] / N_temp[:-1])
+    if B_m == 0 or A_m == 0:
+        return np.nan
+    sampen = -np.log(A_m / B_m)
     return sampen
 
 
@@ -93,7 +122,7 @@ def multiscale_entropy_multidim(time_series, max_scale, m, r):
         coarse_grained_ts = custom_granulate_time_series_multidim(time_series, scale)
         # Calculate sample entropy, can handle NaNs in the input
         se = sample_entropy_multidim(coarse_grained_ts, m, r)
-        mse.append(se[0] if len(se) > 0 else np.nan)  # Handle the possibility of an empty list
+        mse.append(se)  # Handle the possibility of an empty list
 
     return mse
 
