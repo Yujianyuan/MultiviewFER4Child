@@ -23,41 +23,73 @@ def custom_granulate_time_series(time_series, scale):
     return granulated_time_series
 
 # compute sample entropy
-def sample_entropy(time_series, sample_length, tolerance=None):
-    if not isinstance(time_series, np.ndarray):
-        time_series = np.array(time_series)
+def sample_entropy(time_series, m, r=None):
+    """
+    Calculate sample entropy of a time series with embedding dimension m and tolerance r.
+    This function can handle NaNs. If a vector comparison involves NaNs, that pair is skipped.
 
-    if tolerance is None:
-        # Excluding NaN values for standard deviation calculation
-        tolerance = 0.1 * np.nanstd(time_series)
+    :param time_series: 1D array-like, the time series data.
+    :param m: embedding dimension
+    :param r: tolerance (if None, defaults to 0.1*std of the non-NaN elements)
+    :return: SampEn(m, r)
+    """
+    ts = np.array(time_series, dtype=float)
 
-    sample_length = sample_length - 1
-    n = len(time_series)
-    N_temp = np.zeros(sample_length + 2)
-    N_temp[0] = n * (n - 1) / 2
+    # If no tolerance specified, use 0.1 * nanstd
+    if r is None:
+        r = 0.1 * np.nanstd(ts)
+        if np.isnan(r) or r == 0:
+            # If std is zero or NaN, use a small epsilon to avoid division by zero
+            r = 1e-10
 
-    for i in range(n - sample_length - 1):
-        template = time_series[i : (i + sample_length + 1)]
+    N = len(ts)
+    if N < 2*m:
+        return np.nan  # Not enough data to form m and m+1 dimension vectors
 
-        # Skip if NaN is in the template
-        if np.isnan(template).any():
-            continue
+    # Construct m-dim and (m+1)-dim embeddings
+    # X_m[i] = (x[i], x[i+1], ..., x[i+m-1])
+    # There are (N-m+1) such m-dimensional vectors
+    X_m = np.array([ts[i:i+m] for i in range(N-m+1)])
+    X_m1 = np.array([ts[i:i+m+1] for i in range(N-m)])  # For m+1 dimension
 
-        rem_time_series = time_series[i + 1 :]
-        search_list = np.arange(len(rem_time_series) - sample_length, dtype=np.int32)
-        
-        for length in range(1, len(template) + 1):
-            # Skip comparison if NaN is in the elements to compare
-            hit_list = np.logical_and(
-                np.abs(rem_time_series[search_list] - template[length - 1]) < tolerance,
-                ~np.isnan(rem_time_series[search_list])
-            )
-            N_temp[length] += np.sum(hit_list)
-            search_list = search_list[hit_list] + 1
+    # Function to count matches for dimension m
+    def count_matches(X, threshold):
+        """
+        Count the number of pairs (i,j), i<j, of vectors in X that match within threshold.
+        If either vector in a pair contains NaN, that pair is skipped.
+        """
+        count = 0
+        length = len(X)
+        for i in range(length - 1):
+            Xi = X[i]
+            # If Xi has NaN, pairs involving Xi are only valid if Xj has no NaN
+            # Actually, if Xi has NaN, no match can be formed with it since we can't define distance properly.
+            # But let's handle it explicitly:
+            if np.isnan(Xi).any():
+                # All pairs with Xi are invalid
+                continue
+            for j in range(i + 1, length):
+                Xj = X[j]
+                # If Xj has NaN, skip
+                if np.isnan(Xj).any():
+                    continue
+                # Check max distance between Xi and Xj
+                dist = np.max(np.abs(Xi - Xj))
+                if dist < threshold:
+                    count += 1
+        return count
 
-    # Avoid division by zero in case no matches are found
-    N_temp[N_temp == 0] = np.nan
-    sampen = -np.log(N_temp[1:] / N_temp[:-1])
+    B_m = count_matches(X_m, r)
+    A_m = count_matches(X_m1, r)
+
+    # According to SampEn definition:
+    # B(m) = B_m / (N-m)*(N-m-1)/2 is often conceptual, but since B_m counts all pairs i<j, it's already the count of pairs.
+    # Similarly for A_m.
+    # SampEn = -ln( A_m / B_m )
+    # Need to handle division by zero or no matches cases
+    if B_m == 0 or A_m == 0:
+        return np.nan
+    sampen = -np.log(A_m / B_m)
     return sampen
 
 def multiscale_entropy(time_series, max_scale, m, r):
@@ -76,7 +108,7 @@ def multiscale_entropy(time_series, max_scale, m, r):
 
         # Calculate sample entropy, able to handle input containing NaNs
         se = sample_entropy(coarse_grained_ts, m, r)
-        mse.append(se[0] if len(se) > 0 else np.nan)  # Handle the possibility of an empty list
+        mse.append(se)  
 
     return mse
 
