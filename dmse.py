@@ -5,6 +5,7 @@ import numpy as np
 import math
 import csv
 from sigma import *
+from numba import jit, prange
 
 # construct multiscale series
 def custom_granulate_time_series(time_series, scale):
@@ -23,6 +24,7 @@ def custom_granulate_time_series(time_series, scale):
     return granulated_time_series
 
 # compute sample entropy
+@jit(nopython=True, parallel=True)
 def sample_entropy(time_series, m, r=None):
     """
     Calculate sample entropy of a time series with embedding dimension m and tolerance r.
