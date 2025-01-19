@@ -5,7 +5,7 @@ import numpy as np
 import math
 import csv
 from scipy.spatial.distance import jensenshannon
-# from numba import jit, prange
+from numba import jit, prange
 from sigma import *
 
 # construct multi-dimention multiscale series
@@ -33,7 +33,7 @@ def custom_granulate_time_series_multidim(time_series, scale):
                 granulated_time_series.append(mean_values)
     return granulated_time_series
 
-
+@jit(nopython=True, parallel=True)
 def sample_entropy_multidim(time_series, m, r=None):
     """
     Calculate sample entropy for a multi-dimensional time series.
