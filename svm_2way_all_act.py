@@ -164,39 +164,4 @@ def SVM_2way_all(diag_path, csv_path, all_act, rest_feat):
         print(f'所有活动的平均准确率: {acc}%')
 
 
-        # # 留一法交叉验证
-        # loo = LeaveOneOut()
-        # y_true, y_pred, y_probs = [], [], []
-        # coef_sum = np.zeros(features_scaled.shape[1])  # 初始化系数和
-
-        # from sklearn.preprocessing import LabelEncoder
-        # for train_index, test_index in loo.split(features_scaled):
-        #     X_train, X_test = features_scaled[train_index], features_scaled[test_index]
-        #     y_train, y_test = labels[train_index], labels[test_index]
-        #     #print(y_train)
-
-        #     # if y_train.dtype == object:
-        #     #     le = LabelEncoder()
-        #     #     y_train = le.fit_transform(y_train)
-        #     #     print("Labels transformed by LabelEncoder:", y_train)
-            
-        #     svm_model.fit(X_train, y_train)
-        #     y_probs.append(svm_model.predict_proba(X_test)[:, 1][0])  # 获取正类别的预测概率
-        #     y_pred.append(svm_model.predict(X_test)[0])
-        #     y_true.append(y_test[0])
-        #     #coef_sum += np.abs(svm_model.coef_[0])  # 累加特征权重
-        #     # 归一化特征权重并累加
-        #     normalized_coefs = np.abs(svm_model.coef_[0]) / np.linalg.norm(svm_model.coef_[0])
-        #     coef_sum += normalized_coefs
-
-        # conf_matrix = confusion_matrix(y_true, y_pred)
-
-        # accuracy = accuracy_score(y_true, y_pred)
-        # precision = precision_score(y_true, y_pred)
-        # recall = recall_score(y_true, y_pred)
-        # sensitivity = recall  # 敏感度和召回率相同
-        # specificity = conf_matrix[0, 0] / (conf_matrix[0, 0] + conf_matrix[0, 1])
-        # correct_rate = accuracy
-
-        # #print("混淆矩阵:\n", conf_matrix)
-        # print('正确率: {:.3f} 精确度: {:.3f} 召回率: {:.3f} 特异度: {:.3f}'.format(correct_rate,precision,recall,specificity))
+    
