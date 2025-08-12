@@ -45,5 +45,18 @@ git clone https://github.com/Yujianyuan/MultiviewFER4Child.git
 cd MultiviewFER4Child
 ```
 
+## ✏️ Citation
+If you find this work useful for your research, please feel free to leave a star⭐️ and cite our paper:
+
+```bibtex
+@article{zeng2025multi,
+  title={Multi-view Facial Expressions Analysis of Autistic Children in Social Play},
+  author={Zeng, Jiabei and Yuan, Yujian and Qu, Lu and Chang, Fei and Sun, Xuran and Gong, Jinqiuyu and Han, Xuling and Liu, Min and Zhao, Hang and Liu, Qiaoyun and others},
+  journal={IEEE Transactions on Affective Computing},
+  year={2025},
+  publisher={IEEE}
+}
+```
+
 ## 🤝 Acknowledgement
 This work is supported by National Natural Science Foundation of China (No. 62176248), Science Foundation of the Shanghai Education Commission: Major Program(2023SKZD07), China Postdoctoral Science Foundation(2023M731104).
